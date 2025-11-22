@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weight Record Pre-filler</title>
+    <style>
+      :root {
+        --primary: #4f46e5;
+        --bg: #f3f4f6;
+        --err: #ef4444;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: sans-serif;
+        background: var(--bg);
+        color: #111;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .card {
+        background: #fff;
+        padding: 2rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px #0001;
+        width: 100%;
+        max-width: 400px;
+
+        & header {
+          text-align: center;
+          margin-bottom: 2rem;
+
+          & h1 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+          }
+
+          & p {
+            color: #6b7280;
+            font-size: 0.95rem;
+          }
+        }
+      }
+
+      .input-group {
+        margin-bottom: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+
+        & label {
+          font-weight: 500;
+        }
+
+        & input {
+          width: 100%;
+          padding: 0.75rem;
+          border: 1px solid #d1d5db;
+          border-radius: 8px;
+          font-size: 1rem;
+          background: #fafafa;
+
+          &:focus {
+            outline: 2px solid var(--primary);
+            background: #fff;
+          }
+        }
+      }
+
+      button {
+        width: 100%;
+        padding: 0.875rem;
+        background: var(--primary);
+        color: #fff;
+        border: 0;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+
+        &:hover {
+          opacity: 0.9;
+        }
+      }
+
+      .error-message {
+        color: var(--err);
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        padding: 0.75rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        text-align: center;
+
+        &.hidden {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <header>
+          <h1>Weight Record Pre-filler</h1>
+          <p>Enter your metrics below</p>
+        </header>
+
+        <form id="form">
+          <div id="errorMessage" class="error-message hidden"></div>
+
+          <div class="input-group">
+            <label for="weight">Weight (kg)</label>
+            <input
+              type="number"
+              id="weight"
+              name="weight"
+              step="0.1"
+              placeholder="e.g. 65.5"
+              required
+              autofocus
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="bodyFat">Body Fat (%)</label>
+            <input
+              type="number"
+              id="bodyFat"
+              name="bodyFat"
+              step="0.1"
+              placeholder="e.g. 20.5"
+              required
+            />
+          </div>
+
+          <button type="submit" class="btn-primary">Fill Google Form</button>
+        </form>
+      </div>
+    </div>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("form");
+        const errorMessage = document.getElementById("errorMessage");
+
+        // Parse URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const formId = urlParams.get("formId");
+        const weightId = urlParams.get("weightId");
+        const bodyFatId = urlParams.get("bodyFatId");
+
+        // Validate configuration
+        if (!formId || !weightId || !bodyFatId) {
+          showError(
+            "`formId`, `weightId`, and `bodyFatId` are required in the URL query params.",
+          );
+          disableForm();
+          return;
+        }
+
+        form.addEventListener("submit", (e) => {
+          e.preventDefault();
+
+          const weight = document.getElementById("weight").value;
+          const bodyFat = document.getElementById("bodyFat").value;
+
+          if (!weight || !bodyFat) {
+            showError("Please fill in all fields.");
+            return;
+          }
+
+          const targetUrl = new URL(
+            `https://docs.google.com/forms/d/e/${formId}/viewform`,
+          );
+          targetUrl.searchParams.append(`entry.${weightId}`, weight);
+          targetUrl.searchParams.append(`entry.${bodyFatId}`, bodyFat);
+          window.location.replace(targetUrl.toString());
+        });
+
+        function showError(message) {
+          errorMessage.textContent = message;
+          errorMessage.classList.remove("hidden");
+        }
+
+        function disableForm() {
+          form
+            .querySelectorAll("input, button")
+            .forEach((input) => (input.disabled = true));
+        }
+      });
+    </script>
+  </body>
+</html>
